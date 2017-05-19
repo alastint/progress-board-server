@@ -1,0 +1,249 @@
+doctype html
+html
+  head
+    meta(name='viewport', content='width=device-width')
+    meta(http-equiv='Content-Type', content='text/html; charset=UTF-8')
+    title
+    style.
+      /* -------------------------------------
+      GLOBAL RESETS
+      ------------------------------------- */
+      img {
+        border: none;
+        -ms-interpolation-mode: bicubic;
+        max-width: 100%;
+      }
+      body {
+        background-color: #ffffff;
+        color: rgb(11,31,44)!important;
+        font-family: Calibri, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        font-size: 14px;
+        line-height: 1.5;
+        margin: 0;
+        padding: 0;
+        -ms-text-size-adjust: 100%;
+        -webkit-text-size-adjust: 100%;
+      }
+      table {
+        border-collapse: separate;
+        mso-table-lspace: 0pt;
+        mso-table-rspace: 0pt;
+        width: 100%;
+      }
+      table td {
+        font-family: Calibri, Arial, sans-serif;
+        font-size: 14px;
+        vertical-align: top;
+      }
+      /* -------------------------------------
+      BODY & CONTAINER
+      ------------------------------------- */
+      .body {
+        background-color: #ffffff;
+        width: 100%;
+      }
+      /* Set a max-width, and make it display as block so it will automatically stretch to that width, but will also shrink down on a phone or something */
+      .container {
+        display: block;
+        Margin: 0 auto !important;
+        /* makes it centered */
+        max-width: 800px;
+        width: auto !important;
+        width: 800px;
+      }
+      /* This should also be a block element, so that it will fill 100% of the .container */
+      .content {
+        box-sizing: border-box;
+        display: block;
+        Margin: 0 auto;
+        max-width: 800px;
+        padding: 50px;
+      }
+      /* -------------------------------------
+      HEADER, FOOTER, MAIN
+      ------------------------------------- */
+      .main {
+        background: #ffffff;
+        width: 100%;
+      }
+      .wrapper {
+        box-sizing: border-box;
+        padding: 0;
+      }
+      .footer {
+        clear: both;
+        padding-top: 10px;
+        text-align: left;
+        width: 100%;
+      }
+      /* -------------------------------------
+      TYPOGRAPHY
+      ------------------------------------- */
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: Calibri, Arial, sans-serif;
+        font-weight: normal;
+        line-height: 1;
+        margin: 0;
+        Margin-bottom: 20px;
+        color: rgb(11,31,44)!important;
+      }
+      h1 {
+        font-size: 26px;
+        font-weight: normal;
+        text-align: left;
+        text-transform: capitalize;
+      }
+      p,
+      ul,
+      ol {
+        font-family: Calibri, Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.5;
+        font-weight: normal;
+        margin: 0;
+        Margin-bottom: 20px;
+        color: rgb(11,31,44)!important;
+      }
+      p li,
+      ul li,
+      ol li {
+        list-style-position: inside;
+        margin-left: 5px;
+      }
+      a {
+        color: rgb(11,31,44)!important;
+        text-decoration: none;
+      }
+
+
+      /* -------------------------------------
+      OTHER STYLES THAT MIGHT BE USEFUL
+      ------------------------------------- */
+      .highlight {
+        color: rgb(112, 201, 196)!important;
+      }
+      .last {
+        margin-bottom: 0; }
+      .first {
+        margin-top: 0; }
+      .align-center {
+        text-align: center; }
+      .align-right {
+        text-align: right; }
+      .align-left {
+        text-align: left; }
+      .clear {
+        clear: both; }
+      .mt0 {
+        margin-top: 0; }
+      .mb0 {
+        margin-bottom: 0; }
+      .preheader {
+        color: transparent;
+        display: none;
+        height: 0;
+        max-height: 0;
+        max-width: 0;
+        opacity: 0;
+        overflow: hidden;
+        mso-hide: all;
+        visibility: hidden;
+        width: 0; }
+      .powered-by a {
+        text-decoration: none; }
+      hr {
+        border: 0;
+        border-bottom: 1px solid #f6f6f6;
+        Margin: 20px 0;
+      }
+
+      .logo-block {
+        font-family: Calibri, Arial, sans-serif;
+        text-align: center;
+        margin-bottom: 30px;
+        color: #000000;
+        font-weight: normal;
+        font-size: 30px;
+      }
+
+      /*.logo {*/
+        /*width: 200px;*/
+        /*height: 36px;*/
+        /*margin: 0;*/
+        /*padding: 0;*/
+      /*}*/
+
+      .button {
+        padding: 10px 15px;
+        margin: 15px auto;
+        border-radius: 5px;
+        border: 1px solid rgb(112, 201, 196);
+        text-align: center;
+        display: block;
+      }
+
+      .reset-button {
+        width: 150px;
+      }
+
+      @media only screen and (max-width: 620px) {
+        .container {
+          display: block;
+          Margin: 0 auto !important;
+          /* makes it centered */
+          max-width: 600px;
+          width: auto !important;
+          width: 600px;
+        }
+
+        .content {
+          box-sizing: border-box;
+          display: block;
+          Margin: 0 auto;
+          max-width: 600px;
+          padding: 5px;
+        }
+
+        h1 {
+          font-size: 22px;
+          font-weight: normal;
+          text-align: left;
+          text-transform: capitalize;
+        }
+
+      }
+  body
+    table.body(border='0', cellpadding='0', cellspacing='0')
+      tr
+        td  
+        td.container
+          .content
+            // START CENTERED WHITE CONTAINER
+            span.preheader
+            table.main
+              // START MAIN CONTENT AREA
+              tr
+                td.wrapper
+                  table(border='0', cellpadding='0', cellspacing='0')
+                    tr
+                      td
+                        div.logo-block
+                          | Beam Authentic
+                        hr
+
+                        block content
+
+              // END MAIN CONTENT AREA
+            // START FOOTER
+            .footer
+              table(border='0', cellpadding='0', cellspacing='0')
+                tr
+                  td.content-block
+
+            // END FOOTER
+            // END CENTERED WHITE CONTAINER
+        td  

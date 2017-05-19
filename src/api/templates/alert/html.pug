@@ -1,0 +1,9 @@
+extends ../layout
+
+block content
+  if message
+    h1.title #{title}:
+    br
+    p!= message
+
+  p

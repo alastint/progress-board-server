@@ -1,0 +1,15 @@
+table.content-table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 35px;
+}
+
+table.content-table,
+table.content-table th,
+table.content-table td {
+  border: 1px solid #cdcdcc;
+}
+
+table.content-table td {
+  padding: 5px 10px;
+}

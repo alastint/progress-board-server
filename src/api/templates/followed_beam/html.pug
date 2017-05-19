@@ -1,0 +1,8 @@
+extends ../layout
+
+block content
+  h1 Hi, #{name}
+  p User #{followerName} followed your beam #{beamDescription}.
+  p
+  p If you don't want to receive such notifications, please press button below:
+  a.button.reset-button(href=link) Disable notifications

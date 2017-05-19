@@ -1,0 +1,5654 @@
+---
+swagger: '2.0'
+
+info:
+  version: v1
+  title: Beam API
+  x-logo:
+    url: beamauthentic.png
+  description: |
+    The first version of the Beam API.
+    
+    ### We use next HTTP status codes:
+    
+    | Code | Explanation |
+    |-----|-----|
+    | 200 | Everything is working |
+    | 201 | New resource is created |
+    | 400 | Bad Request – The request was invalid or cannot be served |
+    | 401 | Unauthorized – The request requires an user authentication or authentication header is invalid |
+    | 403 | Forbidden – The server understood the request, but is refusing it or the access is not allowed |
+    | 404 | Not found – There is no resource behind the URI |
+    | 500 | Internal Server Error |
+
+
+    ### Response format
+    
+    All errors in response have next format and HTTP status code is 400 or 404 or 500 (developerMessage is optional):
+
+    ```json
+    {
+        "error": {
+            "message": "Group is not found",
+            "developerMessage": "More details about error for developer"
+        }
+    }
+    ```
+
+host: beamauthentic.com
+basePath: /api/v1
+schemes:
+  - https
+produces:
+  - application/json
+consumes:
+  - application/json
+
+# x-tagGroups:
+#   - name: User Management
+#     tags:
+#       - auth
+#   - name: Statistics
+#     tags:
+#       - auth
+
+paths:
+
+# Ping pong
+
+  /api/ping:
+    post:
+      tags:
+        - health
+      summary: Check is beckend still alive
+      description: ""
+      operationId: signin
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        "200":
+            description: He is alive.
+            schema:
+              description: ''
+              type: string
+              default: "pong"
+
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+# Newsfeed
+
+  /api/v1/newsfeed:
+    get:
+      tags:
+        - News feed
+      summary: Get list
+      description: "Get list of last news with bound instances"
+      operationId: get-newsfeed
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        "200":
+            description: Successful.
+            schema:
+              $ref: "#/definitions/Feed"
+
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/newsfeed_all:
+    get:
+      tags:
+        - News feed
+      summary: Get list of news for all users (for admin only)
+      description: "Get list of last news with bound instances for all users"
+      operationId: get-newsfeed
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        "200":
+            description: Successful.
+            schema:
+              $ref: "#/definitions/Feed"
+
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+
+# Create feedback
+
+  /api/v1/feedback:
+    post:
+      tags:
+        - feedback
+      summary: Create feedback about user or beam
+      description: ""
+      operationId: create-feedback
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: body
+          name: data
+          description: Feedback object
+          required: true
+          schema:
+            type: object
+            properties:
+              userId:
+                type: integer
+                default: 1
+              beamId:
+                type: integer
+                default: 1
+              type:
+                type: string
+                default: "complaint"
+              message:
+                type: string
+                description: Required
+                required: true
+      responses:
+        "200":
+            description: Successful.
+            schema:
+              type: object
+              properties:
+                MessageId:
+                  type: string
+                  default: "0100015ac25c77ef-2d4ef10a-9ef7-4b8f-8347-2cd817a54c39-000000"
+
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+# Login and else
+
+  /api/v1/signin:
+    post:
+      tags:
+        - auth
+      summary: Signin a user by email and password
+      description: ""
+      operationId: signin
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - in: body
+          name: data
+          description: Account object
+          required: true
+          schema:
+            $ref: "#/definitions/Auth"
+      responses:
+        "200":
+            description: Authentication is successful
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  $ref: "#/definitions/AuthAccount"
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/signup:
+    post:
+      tags:
+        - auth
+      summary: Signup a user.
+      description: ""
+      operationId: signin
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - in: body
+          name: data
+          description: Account object
+          required: true
+          schema:
+            description: ''
+            type: object
+            properties:
+              firstName:
+                type: string
+              lastName:
+                type: string
+              email:
+                type: string
+                required: true
+              password:
+                type: string
+                required: true
+              picture:
+                type: string
+              description:
+                type: string
+              dob:
+                type: string
+      responses:
+        "200":
+            description: Authentication is successful
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      default: "Check your mailbox"
+
+
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/signup/confirm:
+    post:
+      tags:
+        - auth
+      summary: Confirm signup.
+      description: ""
+      operationId: signin
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - in: body
+          name: token
+          description: Confirmation token
+          required: true
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+      responses:
+        "200":
+            description: Confirmation is successful
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      default: "Ok, Try to signin"
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/notification/disable:
+    post:
+      tags:
+        - auth
+      summary: Notifications disable.
+      description: ""
+      operationId: signin
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - in: body
+          name: token
+          description: Confirmation token
+          required: true
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+      responses:
+        "200":
+            description: Notifications disabled
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      default: "Notifications disabled"
+        "400":
+            description: Refresh token is required
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/refresh_token:
+    post:
+      tags:
+        - auth
+      summary: Refresh auth token.
+      description: ""
+      operationId: refresh
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - in: body
+          name: token
+          description: Refresh token
+          required: true
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+      responses:
+        "200":
+            description: Refreshed successful
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    authToken:
+                      type: string
+                      description: 'New auth token'
+                    refreshToken:
+                      type: string
+                      description: 'New refresh token'
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+# Account
+
+  /api/v1/account:
+    get:
+      tags:
+        - account
+      summary: Get profile
+      description: "Get profile of current user"
+      operationId: get-profile
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/authHeader"
+        - $ref: "#/parameters/contentTypeHeader"
+      responses:
+        "200":
+            description: Successful
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  $ref: "#/definitions/AuthAccount"
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+    put:
+      tags:
+        - account
+      summary: Update profile
+      description: "Update profile of current user"
+      operationId: set-profile
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/authHeader"
+        - $ref: "#/parameters/contentTypeHeader"
+        - in: body
+          name: data
+          description: User object
+          required: true
+          schema:
+            $ref: "#/definitions/User"
+      responses:
+        "200":
+            description: Successful
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  $ref: "#/definitions/User"
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/picture/upload:
+    post:
+      tags:
+        - account
+      summary: Upload user picture.
+      description: Create pre-signed url to upload user picture. Use it to put image on S3
+      operationId: reset-pass
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/authHeader"
+        - $ref: "#/parameters/contentTypeHeader"
+        - in: body
+          name: data
+          description: Image filename
+          schema:
+            description: 'Filename'
+            type: object
+            properties:
+              name:
+                type: string
+      responses:
+        "200":
+            description: Successful
+            schema:
+              description: 'Use this url to put image on S3.'
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    link:
+                      type: string
+                    signature:
+                      type: string
+
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/reset_password/:email:
+    post:
+      tags:
+        - account
+      summary: Reset password
+      description: ""
+      operationId: reset-pass
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - name: email
+          in: query
+          description: User`s email.
+          required: true
+          type: string
+      responses:
+        "200":
+            description: Successful request
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      default: "Please check your mailbox"
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/set_password/:token:
+    post:
+      tags:
+        - account
+      summary: Set password
+      description: ""
+      operationId: reset-pass
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - name: token
+          in: query
+          description: Temporary reset token.
+          required: true
+          type: string
+        - in: body
+          name: password
+          description: Object with password
+          required: true
+          schema:
+            type: object
+            properties:
+              password:
+                type: string
+                default: "abracadabra"
+      responses:
+        "200":
+            description: Password changes successfully
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  $ref: "#/definitions/AuthAccount"
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/beam_device/:uuid:
+    put:
+      tags:
+        - account
+      summary: "Add beam device"
+      description: "Assign beam to user account"
+      operationId: device-add
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - $ref: "#/parameters/authHeader"
+        - name: uuid
+          in: query
+          description: Device's uuid.
+          required: true
+          type: string
+        - in: body
+          description: Device's info.
+          required: true
+          type: object
+          schema:
+            description: ''
+            type: object
+            properties:
+              beamId:
+                description: "List of (IDs) downloaded beams to device"
+                type: array
+                items:
+                  type: integer
+              deviceId:
+                type: integer
+              mobileDeviceUuid:
+                type: string
+              lastPairedAt:
+                type: string
+                format: date-time
+      responses:
+        "200":
+            description: Added successfully
+            schema:
+              $ref: "#/definitions/BeamDevice"
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+    delete:
+      tags:
+        - account
+      summary: "Unassign beam device"
+      description: "Unassign device uuid from user account"
+      operationId: device-remove
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - $ref: "#/parameters/authHeader"
+        - name: uuid
+          in: query
+          description: Device's uuid.
+          required: true
+          type: string
+      responses:
+        "200":
+            description: Removed successfully
+            schema:
+              $ref: "#/definitions/BeamDevice"
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/mobile_device:
+    post:
+      tags:
+        - account
+      summary: "Add mobile device info"
+      description: "Assign mobile device to user account, or update mobile device token."
+      operationId: mobile-device-add
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - $ref: "#/parameters/authHeader"
+        - in: body
+          description: Device info.
+          required: true
+          type: object
+          schema:
+            description: ''
+            type: object
+            required:
+              - platform
+              - token
+              - uuid
+            properties:
+              uuid:
+                type: string
+              platform:
+                type: string
+              token:
+                type: string
+      responses:
+        "200":
+            description: Added successfully
+            schema:
+              $ref: "#/definitions/MobileDevice"
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/beam_device/:platform/:uuid:
+    delete:
+      tags:
+        - account
+      summary: "Drop mobile device info"
+      description: ""
+      operationId: mobile-device-remove
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - $ref: "#/parameters/authHeader"
+        - name: uuid
+          in: query
+          description: Device's uuid.
+          required: true
+          type: string
+        - name: platform
+          in: query
+          description: Device's platform (`ios` or `android`).
+          required: true
+          type: string
+      responses:
+        "200":
+            description: Removed successfully
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    count:
+                      type: number
+                      default: 1
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/request/publisher:
+    post:
+      tags:
+        - account
+      summary: Request publisher account
+      description: ""
+      operationId: request-publisher
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - $ref: "#/parameters/authHeader"
+      responses:
+        "200":
+            description: Request created successfully
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      default: "You sent request to be a publisher. Please wait until admin will process it."
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/event:
+    get:
+      tags:
+        - event
+      summary: Get last events
+      description: "Getlist of last events"
+      operationId: get-event
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      responses:
+        "200":
+            description: Successful.
+            schema:
+              $ref: "#/definitions/Event"
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/event/unread_count:
+    get:
+      tags:
+        - event
+      summary: Get unread events count
+      description: "Get number of unread events for user"
+      operationId: get-event
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      responses:
+        "200":
+            description: Successful.
+            schema:
+              $ref: "#/definitions/Count"
+        "400":
+            description: Error
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/event/reset:
+    post:
+      tags:
+        - event
+      summary: Reset last viewed event
+      description: "Reset last viewed event"
+      operationId: reset-event
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+      responses:
+        "200":
+            description: Successful.
+            schema:
+              type: object
+              properties:
+                data:
+                  type: object
+                  properties:
+                    message:
+                      type: string
+                      default: Reseted last event id
+                    lastEventId:
+                      type: integer
+        "400":
+            description: Email or password is wrong
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/appeal:
+    post:
+      tags:
+        - account
+      summary: Bind appeals
+      description: ""
+      operationId: request-publisher
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - $ref: "#/parameters/authHeader"
+        - in: body
+          name: id
+          description: Array of specific appeal's id.
+          required: true
+          schema:
+            type: object
+            properties:
+              id:
+                type: array
+                default: [1,2]
+                items:
+                  type: number
+      responses:
+        "200":
+            description: Request created successfully
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                      userId:
+                        type: integer
+                      appealId:
+                        type: integer
+                      createdAt:
+                        type: string
+                        format: 'date-time'
+                      updatedAt:
+                        type: string
+                        format: 'date-time'
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+
+
+  /api/v1/account/beam/:filter:
+    get:
+      tags:
+        - account
+      summary: Related beams
+      description: ""
+      operationId: get-users-beam
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: filter
+          type: string
+#          description: Should be equal `created`, `selected`,`saved` or `all`
+          description: ''
+          required: true
+          enum:
+            - created
+            - selected
+            - saved
+            - all
+        - $ref: "#/parameters/contentTypeHeader"
+        - $ref: "#/parameters/authHeader"
+        - $ref: "#/parameters/authHeader"
+        - $ref: "#/parameters/contentTypeHeader"
+        - $ref: "#/parameters/page"
+        - $ref: "#/parameters/limit"
+        - $ref: "#/parameters/where"
+        - $ref: "#/parameters/search"
+        - $ref: "#/parameters/order"
+        - $ref: "#/parameters/fields"
+        - $ref: "#/parameters/include"
+
+      responses:
+        "200":
+            description: Request created successfully
+            schema:
+              description: ''
+              type: object
+              properties:
+                count:
+                  type: integer
+                rows:
+                  type: array
+                  items:
+                    $ref: "#/definitions/Beam"
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/account/blacklist/user:
+      get:
+        tags:
+          - account
+        summary: Blocked users
+        description: Get list of blocked users
+        operationId: account-list-block
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+        responses:
+          "200":
+              description: Successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    default: 0
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/User"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/account/blacklist/beam:
+      get:
+        tags:
+          - account
+        summary: Blocked beams
+        description: Get list of blocked beams
+        operationId: account-list-block
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+        responses:
+          "200":
+              description: Successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    default: 0
+                  rows:
+                    type: array
+                    items:
+                     $ref: "#/definitions/Beam"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+
+# Users
+
+  /api/v1/user:
+      get:
+        tags:
+          - User
+        summary: Get a list of users
+        description: ""
+        operationId: user-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/includeUser"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/User"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+        tags:
+          - User
+        summary: Create user
+        description: ""
+        operationId: user-create
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: body
+            name: data
+            description: User object
+            required: true
+            schema:
+              $ref: "#/definitions/User"
+
+        responses:
+          "200":
+              description: Created successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/User"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/user/:id:
+    get:
+      tags:
+        - User
+      summary: Get a user by ID.
+      description: "Each user could include : beams, beamDevices."
+      operationId: user-one
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/authHeader"
+        - $ref: "#/parameters/contentTypeHeader"
+        - $ref: "#/parameters/id"
+        - $ref: "#/parameters/fields"
+        - $ref: "#/parameters/includeUser"
+      responses:
+        "200":
+            description: Successful
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  $ref: "#/definitions/User"
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+    put:
+      tags:
+        - User
+      summary: Update user
+      description: ""
+      operationId: user-update
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/authHeader"
+        - $ref: "#/parameters/contentTypeHeader"
+        - $ref: "#/parameters/id"
+        - in: body
+          name: data
+          type: object
+          description: User object
+          required: true
+          schema:
+            $ref: "#/definitions/User"
+      responses:
+        "200":
+            description: Updated successful
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  $ref: "#/definitions/User"
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+    delete:
+      tags:
+        - User
+      summary: Remove user
+      description: ""
+      operationId: user-remove
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/authHeader"
+        - $ref: "#/parameters/contentTypeHeader"
+        - in: query
+          name: data
+          type: integer
+          description: User ID
+          required: true
+          schema:
+            description: 'Specific ID'
+            type: integer
+      responses:
+        "200":
+            description: Removed successful
+            schema:
+              description: ''
+              type: object
+              properties:
+                data:
+                  $ref: "#/definitions/User"
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+
+  /api/v1/user/bulk/create:
+      post:
+        tags:
+          - User
+        summary: Bulk create user
+        description: ""
+        operationId: user-create-bulk
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: body
+            name: data
+            description: User object
+            required: true
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/User"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/User"
+
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/user/bulk/remove:
+      post:
+        tags:
+          - User
+        summary: Bulk remove user
+        description: ""
+        operationId: user-create-bulk
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: body
+            name: id
+            description: Array of specific user's id.
+            required: true
+            schema:
+              type: object
+              properties:
+                id:
+                  type: array
+                  default: [1,2]
+                  items:
+                    type: number
+
+        responses:
+          "200":
+              description: Users removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/user/bulk/status:
+      put:
+        tags:
+          - User
+        summary: Bulk update users statuses
+        description: ""
+        operationId: user-status
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: body
+            name: data
+            description: User ID
+            required: true
+            schema:
+              description: 'Array of objects with field ID'
+              type: object
+              properties:
+                id:
+                  type: array
+                  default: [5,6]
+                  items:
+                    data:
+                      type: integer
+                status:
+                  type: string
+                  description: 'enabled or disabled'
+                  default: 'enabled'
+        responses:
+          "200":
+              description: Updated is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/User"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/user/:id/beam/:filter:
+    get:
+      tags:
+        - User
+      summary: Related beams
+      description: ""
+      operationId: get-users-beam
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - $ref: "#/parameters/contentTypeHeader"
+        - $ref: "#/parameters/authHeader"
+        - in: query
+          name: filter
+          type: string
+          description: Should be equal `created`, `saved` or `all`
+          required: true
+        - in: query
+          name: id
+          type: integer
+          description: User ID
+          required: true
+      responses:
+        "200":
+            description: Request created successfully
+            schema:
+              description: ''
+              type: object
+              properties:
+                count:
+                  type: integer
+                rows:
+                  type: array
+                  items:
+                    $ref: "#/definitions/Beam"
+        "401":
+            description: Access token is invalid
+            schema:
+              $ref: "#/definitions/Error"
+
+
+  /api/v1/user/:id/followers:
+      get:
+        tags:
+          - Following
+        summary: Get list of specific user followers
+        description: ""
+        operationId: user-followers
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+        responses:
+          "200":
+              description: Successful request
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                        default: 10
+                      rows:
+                        type: array
+                        items:
+                          $ref: "#/definitions/FollowRequest"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/user/:id/followings:
+      get:
+        tags:
+          - Following
+        summary: Get list of specific user followings
+        description: ""
+        operationId: user-followings
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+        responses:
+          "200":
+              description: Successful request
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                        default: 10
+                      rows:
+                        type: array
+                        items:
+                          $ref: "#/definitions/FollowRequest"
+
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/beam/:id/followings:
+      get:
+        tags:
+          - Following
+        summary: Get list of specific BEAM followings
+        description: ""
+        operationId: user-followings
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+        responses:
+          "200":
+              description: Successful request
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                        default: 10
+                      rows:
+                        type: array
+                        items:
+                          $ref: "#/definitions/FollowBeamRequest"
+
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/user/:id/follow:
+      post:
+        tags:
+          - Following
+        summary: Follow some User
+        description: ""
+        operationId: user-create-follow
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+        responses:
+          "200":
+              description: Successful request
+              schema:
+                description: ''
+                type: array
+                items:
+                  $ref: "#/definitions/FollowRequest"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Following
+        summary: Unfollow some User
+        description: ""
+        operationId: user-create-follow
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+        responses:
+          "200":
+              description: Successful request
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                        default: 1
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/user/:id/block:
+      post:
+        tags:
+          - User
+        summary: Block user
+        description: Mark user as objectionable
+        operationId: user-add-block
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Complaint
+            required: true
+            schema:
+              description: ''
+              type: object
+              properties:
+                description:
+                  type: string
+        responses:
+          "200":
+              description: Marked successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/UserBlackList"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - User
+        summary: Unblock user
+        description: UnMark user as objectionable
+        operationId: user-remove-block
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: User specific ID
+            required: true
+        responses:
+          "200":
+              description: Unblocked successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    default: 1
+                    type: integer
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+
+  # Beam follow
+
+  /api/v1/beam/:id/follow:
+      post:
+        tags:
+          - Following
+        summary: Follow some BEAM
+        description: ""
+        operationId: user-create-follow
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+        responses:
+          "200":
+              description: Successful request
+              schema:
+                description: ''
+                type: array
+                items:
+                  $ref: "#/definitions/FollowBeamRequest"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Following
+        summary: Unfollow some BEAM
+        description: ""
+        operationId: user-create-follow
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+        responses:
+          "200":
+              description: Successful request
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+                        default: 1
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  #  Following request
+
+  /api/v1/following/request:
+      get:
+        tags:
+          - Following
+        summary: Get list of follow requests
+        description: ""
+        operationId: user-create-follow
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+        responses:
+          "200":
+              description: Successful request
+              schema:
+                description: ''
+                type: array
+                items:
+                  $ref: "#/definitions/FollowRequest"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/following/request/:id/:action:
+      put:
+        tags:
+          - Following
+        summary: Accept or reject following request from another user.
+        description: ""
+        operationId: user-follow-action
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Request ID
+            required: true
+          - in: query
+            name: action
+            type: string
+            description: Request action (`accept` or `reject`)
+            required: true
+        responses:
+          "200":
+              description: Successful request
+              schema:
+                description: ''
+                type: array
+                items:
+                  $ref: "#/definitions/FollowRequest"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/user/:id/publisher_request/:action:
+      put:
+        tags:
+          - Publisher
+        summary: Accept or reject request publisher account.
+        description: ""
+        operationId: reqeust-publisher-action
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Request ID
+            required: true
+          - in: query
+            name: action
+            type: string
+            description: Request action (`accept` or `reject`)
+            required: true
+        responses:
+          "200":
+              description: Successful request
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        default: "Request processed successful"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+# BeamDevice
+
+  /api/v1/beam_device:
+      get:
+        tags:
+          - Beam device
+        summary: Get a list of devices
+        description: "Each beam device could include : user."
+        operationId: device-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/includeBeamDevice"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/BeamDevice"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Beam device
+            summary: Create device
+            description: ""
+            operationId: device-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: BeamDevice object
+                required: true
+                schema:
+                  $ref: "#/definitions/BeamDevice"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/BeamDevice"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/beam_device/:id:
+      get:
+        tags:
+          - Beam device
+        summary: Get a device by ID.
+        description: ""
+        operationId: device-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/includeBeamDevice"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/BeamDevice"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - Beam device
+        summary: Update device
+        description: ""
+        operationId: device-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: BeamDevice object
+            required: true
+            schema:
+              $ref: "#/definitions/BeamDevice"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/BeamDevice"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Beam device
+        summary: Remove device
+        description: ""
+        operationId: device-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: BeamDevice specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/BeamDevice"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/beam_device/bulk/create:
+      post:
+        tags:
+          - Beam device
+        summary: Bulk create device
+        description: ""
+        operationId: device-create-bulk
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: body
+            name: data
+            description: Array of beam device objects
+            required: true
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/BeamDevice"
+
+        responses:
+          "200":
+              description: Created successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/BeamDevice"
+
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/beam_device/bulk/remove:
+      post:
+        tags:
+          - Beam device
+        summary: Bulk remove device
+        description: ""
+        operationId: device-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - in: body
+            name: id
+            description: Array of specific device's id.
+            required: true
+            schema:
+              type: object
+              properties:
+                id:
+                  type: array
+                  default: [1,2]
+                  items:
+                    type: number
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+# Beam
+
+  /api/v1/beam:
+      get:
+        tags:
+          - Beam
+        summary: Get a list of beams
+        description: ""
+        operationId: beam-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/includeBeam"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Beam"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Beam
+            summary: Create beam
+            description: ""
+            operationId: beam-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: Beam object
+                required: true
+                schema:
+                  $ref: "#/definitions/Beam"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/Beam"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/beam/causes:
+      get:
+        tags:
+          - Beam
+        summary: Trusted beams
+        description: "Beams from trusted users"
+        operationId: beam-causes-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/includeBeam"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Beam"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/beam/:id/beamers/:filter:
+      get:
+        tags:
+          - Beam
+        summary: Beamers
+        description: "List of users which beamed specific beam (owner and followers)"
+        operationId: beamer-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/includeUser"
+          - $ref: "#/parameters/id"
+          - in: query
+            name: filter
+            description: ''
+            required: true
+            type: string
+            enum:
+              - all
+              - network
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/User"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+
+  /api/v1/beam/:id:
+      get:
+        tags:
+          - Beam
+        summary: Get a beam by ID.
+        description: ""
+        operationId: beam-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/includeBeam"
+        responses:
+          "200":
+              description: Found successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Beam"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - Beam
+        summary: Update beam
+        description: ""
+        operationId: beam-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Beam object
+            required: true
+            schema:
+              $ref: "#/definitions/Beam"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Beam"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Beam
+        summary: Remove beam
+        description: ""
+        operationId: beam-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Beam specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Beam"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/beam/:id/save:
+      post:
+        tags:
+          - Beam
+        summary: Save beam to user
+        description: ""
+        operationId: beam-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Beam object
+            required: true
+            schema:
+              type: object
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/definitions/BeamSaved"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Beam
+        summary: Remove beam saved to user
+        description: ""
+        operationId: beam-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Beam specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    default: 1
+                    type: integer
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/beam/bulk/create:
+      post:
+        tags:
+          - Beam
+        summary: Bulk create
+        description: ""
+        operationId: beam-create-bulk
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: body
+            name: data
+            description: Array of beam objects
+            required: true
+            schema:
+              type: array
+              items:
+                $ref: "#/definitions/Beam"
+
+        responses:
+          "200":
+              description: Created successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/Beam"
+
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/beam/bulk/remove:
+      post:
+        tags:
+          - Beam
+        summary: Bulk remove
+        description: ""
+        operationId: beam-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - in: body
+            name: id
+            description: Array of specific beam's id.
+            required: true
+            schema:
+              type: object
+              properties:
+                id:
+                  type: array
+                  default: [1,2]
+                  items:
+                    type: number
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/beam/upload:
+      post:
+        tags:
+          - Beam
+        summary: Upload beam asset
+        description: Create url to upload beam asset. Use it to put image on S3
+        operationId: beam-upload
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - in: body
+            name: data
+            description: Image filename
+            schema:
+              description: 'Filename'
+              type: object
+              properties:
+                name:
+                  type: string
+        responses:
+          "200":
+              description: Successful
+              schema:
+                description: 'Use that url to put image on S3.'
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      link:
+                        type: string
+                      signature:
+                        type: string
+                      name:
+                        type: string
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/beam/publish:
+      post:
+        tags:
+          - Beam
+        summary: Create and Publish
+        description: Create new beam and new post for it
+        operationId: beam-publish
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - in: body
+            name: data
+            schema:
+              $ref: "#/definitions/Beam"
+        responses:
+          "200":
+              description: Successful
+              schema:
+                description: 'Use that url to put image on S3.'
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      beam:
+                        $ref: "#/definitions/Beam"
+                      post:
+                        $ref: "#/definitions/Post"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/beam/:id/block:
+      post:
+        tags:
+          - Beam
+        summary: Block beam
+        description: Mark content as objectionable
+        operationId: beam-add-block
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Complaint
+            required: true
+            schema:
+              description: ''
+              type: object
+              properties:
+                description:
+                  type: string
+        responses:
+          "200":
+              description: Marked successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/BeamBlackList"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Beam
+        summary: Unblock beam
+        description: UnMark content as objectionable
+        operationId: beam-remove-block
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Beam specific ID
+            required: true
+        responses:
+          "200":
+              description: Unblocked successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    default: 1
+                    type: integer
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+# Stream
+
+  /api/v1/stream:
+      get:
+        tags:
+          - Stream
+        summary: Get a list of streams
+        description: "Each stream could include : user."
+        operationId: stream-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Stream"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+        tags:
+          - Stream
+        summary: Create stream
+        description: ""
+        operationId: stream-create
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: body
+            name: data
+            description: Stream object
+            required: true
+            schema:
+              $ref: "#/definitions/Stream"
+
+        responses:
+          "200":
+              description: Created successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Stream"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/stream/:id:
+      get:
+        tags:
+          - Stream
+        summary: Get a stream by ID.
+        description: ""
+        operationId: stream-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Stream"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - Stream
+        summary: Update stream
+        description: ""
+        operationId: stream-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Stream object
+            required: true
+            schema:
+              $ref: "#/definitions/Stream"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Stream"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Stream
+        summary: Remove stream
+        description: ""
+        operationId: stream-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Stream specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Stream"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/stream/:id/:action:
+      post:
+        tags:
+          - Stream
+        summary: Accept or reject publisher stream.
+        description: Accept or reject publisher stream.
+        operationId: stream-accept-reject
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Stream ID
+            required: true
+          - in: query
+            name: action
+            type: string
+            description: Request action (`accept` or `reject`)
+            required: true
+        responses:
+          "200":
+              description: Successful request
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        default: "Successful. Stream is enabled"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+# Plan
+
+  /api/v1/plan:
+      get:
+        tags:
+          - Plan
+        summary: Get a list of plans
+        description: "Each plan could include : user."
+        operationId: plan-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Plan"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Plan
+            summary: Create plan
+            description: ""
+            operationId: plan-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: Plan object
+                required: true
+                schema:
+                  $ref: "#/definitions/Plan"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/Plan"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/plan/:id:
+      get:
+        tags:
+          - Plan
+        summary: Get a plan by ID.
+        description: ""
+        operationId: plan-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Plan"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - Plan
+        summary: Update plan
+        description: ""
+        operationId: plan-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Plan object
+            required: true
+            schema:
+              $ref: "#/definitions/Plan"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Plan"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Plan
+        summary: Remove plan
+        description: ""
+        operationId: plan-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Plan specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Plan"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+# Post
+
+  /api/v1/post:
+      get:
+        tags:
+          - Post
+        summary: Get a list of posts
+        description: "Each post could include : user."
+        operationId: post-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Post"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Post
+            summary: Create post
+            description: ""
+            operationId: post-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: Post object
+                required: true
+                schema:
+                  $ref: "#/definitions/Post"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/Post"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/post/:id:
+      get:
+        tags:
+          - Post
+        summary: Get a post by ID.
+        description: ""
+        operationId: post-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Post"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - Post
+        summary: Update post
+        description: ""
+        operationId: post-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Post object
+            required: true
+            schema:
+              $ref: "#/definitions/Post"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Post"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Post
+        summary: Remove post
+        description: ""
+        operationId: post-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Post specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Post"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+# Comment
+
+  /api/v1/beam/:id/comment:
+      get:
+        tags:
+          - Beam comment
+        summary: Get a list of comments
+        description: "Each comment could include : user, beam."
+        operationId: comment-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Comment"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Beam comment
+            summary: Create comment
+            description: ""
+            operationId: comment-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: Comment object
+                required: true
+                schema:
+                  $ref: "#/definitions/Comment"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/Comment"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/beam/:beamId/comment/:commentId:
+      delete:
+        tags:
+          - Beam comment
+        summary: Remove comment by id.
+        description: ""
+        operationId: comment-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        default: "Removed successful"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+
+# Beam like
+
+  /api/v1/beam/:id/like:
+      get:
+        tags:
+          - Beam like
+        summary: Get a list of likes
+        description: "Each like could include : user, beam."
+        operationId: like-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+          - in: query
+            name: id
+            type: integer
+            description: Beam ID
+            required: true
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Like"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Beam like
+            summary: Create like
+            description: ""
+            operationId: like-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: query
+                name: id
+                type: integer
+                description: Beam ID
+                required: true
+            responses:
+              "200":
+                  description: Liked successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            default: "Liked successful"
+                          count:
+                            type: integer
+                            description: 'Current count of likes'
+                            default: 1
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+      delete:
+            tags:
+              - Beam like
+            summary: Remove like
+            description: ""
+            operationId: like-remove
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: query
+                name: id
+                type: integer
+                description: Beam ID
+                required: true
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                            default: "Like removed successful"
+                          count:
+                            type: integer
+                            description: 'Current count of likes'
+                            default: 1
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+# Subscription
+
+  /api/v1/subscription:
+      get:
+        tags:
+          - Subscription
+        summary: Get a list of subscriptions
+        description: "Each subscription could include : user."
+        operationId: subscription-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Subscription"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Subscription
+            summary: Create subscription
+            description: ""
+            operationId: subscription-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: Subscription object
+                required: true
+                schema:
+                  $ref: "#/definitions/Subscription"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/Subscription"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/subscription/:id:
+      get:
+        tags:
+          - Subscription
+        summary: Get a subscription by ID.
+        description: ""
+        operationId: subscription-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Subscription"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - Subscription
+        summary: Update subscription
+        description: ""
+        operationId: subscription-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Subscription object
+            required: true
+            schema:
+              $ref: "#/definitions/Subscription"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Subscription"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Subscription
+        summary: Remove subscription
+        description: ""
+        operationId: subscription-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Subscription specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Subscription"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/subscription/bulk/remove:
+      post:
+        tags:
+          - Subscription
+        summary: Bulk remove
+        description: ""
+        operationId: subscription-bulk-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - in: body
+            name: id
+            description: Array of specific subscription's id.
+            required: true
+            schema:
+              type: object
+              properties:
+                id:
+                  type: array
+                  default: [1,2]
+                  items:
+                    type: number
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+
+# Category
+
+  /api/v1/category:
+      get:
+        tags:
+          - Category
+        summary: Get a list of categorys
+        description: "Each category could include : user."
+        operationId: category-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Category"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Category
+            summary: Create category
+            description: ""
+            operationId: category-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: Category object
+                required: true
+                schema:
+                  $ref: "#/definitions/Category"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/Category"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/category/:id:
+      get:
+        tags:
+          - Category
+        summary: Get a category by ID.
+        description: ""
+        operationId: category-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Category"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - Category
+        summary: Update category
+        description: ""
+        operationId: category-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Category object
+            required: true
+            schema:
+              $ref: "#/definitions/Category"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Category"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Category
+        summary: Remove category
+        description: ""
+        operationId: category-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Category specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Category"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/category/bulk/remove:
+      post:
+        tags:
+          - Category
+        summary: Bulk remove
+        description: ""
+        operationId: category-bulk-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - in: body
+            name: id
+            description: Array of specific category's id.
+            required: true
+            schema:
+              type: object
+              properties:
+                id:
+                  type: array
+                  default: [1,2]
+                  items:
+                    type: number
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+# Library
+
+  /api/v1/library:
+      get:
+        tags:
+          - Library
+        summary: Get a list of libraries
+        description: ""
+        operationId: library-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Library"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Library
+            summary: Create library
+            description: ""
+            operationId: library-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: Library object
+                required: true
+                schema:
+                  $ref: "#/definitions/Library"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/Library"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/library/:id:
+      get:
+        tags:
+          - Library
+        summary: Get a library by ID.
+        description: ""
+        operationId: library-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Library"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - Library
+        summary: Update library
+        description: ""
+        operationId: library-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Library object
+            required: true
+            schema:
+              $ref: "#/definitions/Library"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Library"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Library
+        summary: Remove library
+        description: ""
+        operationId: library-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Library specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Library"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/library/bulk/remove:
+      post:
+        tags:
+          - Library
+        summary: Bulk remove
+        description: ""
+        operationId: library-bulk-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - in: body
+            name: id
+            description: Array of specific library's id.
+            required: true
+            schema:
+              type: object
+              properties:
+                id:
+                  type: array
+                  default: [1,2]
+                  items:
+                    type: number
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+
+# Appeal
+
+  /api/v1/appeal:
+      get:
+        tags:
+          - Appeal
+        summary: Get a list of appeals
+        description: ""
+        operationId: appeal-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Appeal"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Appeal
+            summary: Create appeal
+            description: ""
+            operationId: appeal-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: Appeal object
+                required: true
+                schema:
+                  $ref: "#/definitions/Appeal"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/Appeal"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/appeal/:id:
+      get:
+        tags:
+          - Appeal
+        summary: Get a appeal by ID.
+        description: ""
+        operationId: appeal-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Appeal"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - Appeal
+        summary: Update appeal
+        description: ""
+        operationId: appeal-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Appeal object
+            required: true
+            schema:
+              $ref: "#/definitions/Appeal"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Appeal"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Appeal
+        summary: Remove appeal
+        description: ""
+        operationId: appeal-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Appeal specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Appeal"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+# appeal pairs
+
+  /api/v1/appeal_pair:
+      get:
+        tags:
+          - Appeal pair
+        summary: Get a list of appeal_pairs
+        description: ""
+        operationId: appeal_pair-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/AppealPair"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Appeal pair
+            summary: Create appeal_pair
+            description: ""
+            operationId: appeal_pair-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: Appeal pair object
+                required: true
+                schema:
+                  $ref: "#/definitions/AppealPair"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/AppealPair"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/appeal_pair/:id:
+      get:
+        tags:
+          - Appeal pair
+        summary: Get a appeal_pair by ID.
+        description: ""
+        operationId: appeal_pair-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/AppealPair"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - Appeal pair
+        summary: Update appeal_pair
+        description: ""
+        operationId: appeal_pair-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Appeal pair object
+            required: true
+            schema:
+              $ref: "#/definitions/AppealPair"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/AppealPair"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Appeal pair
+        summary: Remove appeal_pair
+        description: ""
+        operationId: appeal_pair-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Appeal pair specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/AppealPair"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+
+
+# TAG
+
+  /api/v1/tag:
+      get:
+        tags:
+          - Tag
+        summary: Get a list of tags
+        description: "tags automaticly create with beams"
+        operationId: tag-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Tag"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+# Interest
+
+  /api/v1/interest:
+      get:
+        tags:
+          - Interest
+        summary: Get a list of interests
+        description: "Each interest could include : user."
+        operationId: interest-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/Interest"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - Interest
+            summary: Create interest
+            description: ""
+            operationId: interest-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: Interest object
+                required: true
+                schema:
+                  $ref: "#/definitions/Interest"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/Interest"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/interest/:id:
+      get:
+        tags:
+          - Interest
+        summary: Get a interest by ID.
+        description: ""
+        operationId: interest-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Interest"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - Interest
+        summary: Update interest
+        description: ""
+        operationId: interest-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: Interest object
+            required: true
+            schema:
+              $ref: "#/definitions/Interest"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Interest"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - Interest
+        summary: Remove interest
+        description: ""
+        operationId: interest-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: Interest specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/Interest"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+  /api/v1/interest/bulk/remove:
+      post:
+        tags:
+          - Interest
+        summary: Bulk remove
+        description: ""
+        operationId: interest-bulk-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - in: body
+            name: id
+            description: Array of specific interest's id.
+            required: true
+            schema:
+              type: object
+              properties:
+                id:
+                  type: array
+                  default: [1,2]
+                  items:
+                    type: number
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      count:
+                        type: integer
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+
+# User auth
+
+  /api/v1/account/auth:
+      get:
+        tags:
+          - User auth
+        summary: Get a list of account auth connections
+        description: "Each account/auth could include : user."
+        operationId: user-auth-list
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/page"
+          - $ref: "#/parameters/limit"
+          - $ref: "#/parameters/where"
+          - $ref: "#/parameters/search"
+          - $ref: "#/parameters/order"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Request is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  count:
+                    type: integer
+                  rows:
+                    type: array
+                    items:
+                      $ref: "#/definitions/UserAuth"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      post:
+            tags:
+              - User auth
+            summary: Create account auth connection
+            description: ""
+            operationId: user-auth-create
+            consumes:
+              - application/json
+            produces:
+              - application/json
+            parameters:
+              - $ref: "#/parameters/authHeader"
+              - $ref: "#/parameters/contentTypeHeader"
+              - in: body
+                name: data
+                description: User auth object
+                required: true
+                schema:
+                  $ref: "#/definitions/UserAuth"
+
+            responses:
+              "200":
+                  description: Created successful
+                  schema:
+                    description: ''
+                    type: object
+                    properties:
+                      data:
+                        $ref: "#/definitions/UserAuth"
+              "401":
+                  description: Access token is invalid
+                  schema:
+                    $ref: "#/definitions/Error"
+
+  /api/v1/account/auth/:id:
+      get:
+        tags:
+          - User auth
+        summary: Get a account auth connection by ID.
+        description: ""
+        operationId: user-auth-one
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - $ref: "#/parameters/fields"
+          - $ref: "#/parameters/include"
+        responses:
+          "200":
+              description: Authentication is successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/UserAuth"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      put:
+        tags:
+          - User auth
+        summary: Update account auth connection
+        description: ""
+        operationId: user-auth-update
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - $ref: "#/parameters/id"
+          - in: body
+            name: data
+            description: User auth object
+            required: true
+            schema:
+              $ref: "#/definitions/UserAuth"
+
+        responses:
+          "200":
+              description: Updated successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/UserAuth"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+      delete:
+        tags:
+          - User auth
+        summary: Remove account auth connection
+        description: ""
+        operationId: user-auth-remove
+        consumes:
+          - application/json
+        produces:
+          - application/json
+        parameters:
+          - $ref: "#/parameters/authHeader"
+          - $ref: "#/parameters/contentTypeHeader"
+          - in: query
+            name: id
+            type: integer
+            description: User auth specific ID
+            required: true
+
+        responses:
+          "200":
+              description: Removed successful
+              schema:
+                description: ''
+                type: object
+                properties:
+                  data:
+                    $ref: "#/definitions/UserAuth"
+          "401":
+              description: Access token is invalid
+              schema:
+                $ref: "#/definitions/Error"
+
+parameters:
+  authHeader:
+    in: header
+    name: Authorization
+    description: Access token
+    required: true
+    type: string
+    format: Bearer xxx.yyy.zzz
+  contentTypeHeader:
+    in: header
+    name: Content-type
+    required: true
+    type: string
+    format: application/json
+  id:
+    in: query
+    name: ID
+    description: specific ID
+    required: true
+    type: integer
+    default: 1
+  where:
+    in: query
+    name: where
+    description: Filtering by fields
+    required: false
+    type: json
+    default: {"email": "@dummy.com"}
+  search:
+    in: query
+    name: search
+    description: Search by multiple fields
+    required: false
+    type: json
+    default: {"email":"dummy","firstName":"dummy"}
+  order:
+    in: query
+    name: order
+    description: Ordering by fields
+    required: false
+    type: json
+    default: {"createdAt": 1, id: -1}
+  include:
+    in: query
+    name: include
+    description: Load relations
+    required: false
+    type: array-json
+    default: ["user"]
+  includeBeam:
+    in: query
+    name: include
+    description: Load relations
+    required: false
+    type: array-json
+    default: ["user","categories"]
+  includeBeamDevice:
+    in: query
+    name: include
+    description: Load relations
+    required: false
+    type: array-json
+    default: ["user","beams"]
+  includeUser:
+    in: query
+    name: include
+    description: Load relations
+    required: false
+    type: array-json
+    default: ["appeals","beams","categories","interests"]
+  fields:
+    in: query
+    name: fields
+    description: Select attributes
+    required: false
+    type: array-json
+    default: ["id", "name"]
+  page:
+    in: query
+    name: page
+    description: a page number
+    required: false
+    type: integer
+    default: 1
+  limit:
+    in: query
+    name: limit
+    description: amount records on page
+    type: integer
+    required: false
+    default: 10
+
+definitions:
+  Error:
+    type: object
+    properties:
+      error:
+        type: object
+        properties:
+          message:
+            type: string
+          developerMessage:
+            type: string
+  Auth:
+    type: object
+    required:
+      - email
+      - password
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+        minLength: 4
+      device:
+        type: object
+        properties:
+          uuid:
+            type: string
+          platform:
+            type: string
+            enum:
+              - ios
+              - android
+  BeamDevice:
+    type: object
+    required:
+      - uuid
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      uuid:
+        type: string
+      mobileDeviceUuid:
+        type: string
+      beamId:
+        type: array
+        items:
+          type: integer
+      postId:
+        type: array
+        items:
+          type: integer
+      lastPairedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  Beam:
+    type: object
+    required:
+      - title
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      title:
+        type: string
+      description:
+        type: string
+      status:
+        type: string
+        enum:
+          - enabled
+          - disabled
+          - banned
+      type:
+        type: string
+        enum:
+          - public
+          - private
+          - library
+      linkUrl:
+        type: string
+      asset:
+        type: object
+        properties:
+          link:
+            type: string
+            default: "https://beam-asset-dev.s3.amazonaws.com/beams/1/image"
+          signature:
+            type: string
+            default: "X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAJ3WYSXJZLCSWYX7Q%2F20170317%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20170317T141733Z&X-Amz-Expires=600&X-Amz-Signature=e8582d998abc2679dcdcc22836c6b319ca76a200f696bf7f6d984cc65f75f808&X-Amz-SignedHeaders=host"
+      imageName:
+        type: string
+      categoryId:
+        default: [1,2]
+        type: array
+      hasDonation:
+        type: boolean
+      donationAmount:
+        type: number
+      tags:
+        type: array
+        items:
+          type: string
+      isInstagram:
+        type: boolean
+      isFacebook:
+        type: boolean
+      isTwitter:
+        type: boolean
+      deletedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  MobileDevice:
+    type: object
+    required:
+      - uuid
+      - platform
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      uuid:
+        type: string
+      token:
+        type: string
+      platform:
+        type: string
+        enum:
+          - ios
+          - android
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  FollowRequest:
+    type: object
+    required:
+      - followerId
+      - followingId
+    properties:
+      id:
+        type: integer
+      followerId:
+        type: integer
+      followingId:
+        type: integer
+      status:
+        type: string
+        enum:
+          - pending
+          - accepted
+          - rejected
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  FollowBeamRequest:
+    type: object
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      beamId:
+        type: integer
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+      firstName:
+        type: string
+      lastName:
+        type: string
+      fullName:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      address:
+        type: string
+      dob:
+        type: string
+        format: date-time
+      role:
+        type: string
+        description: |
+          |           |            |
+          |-----------|------------|
+          | super     | Super Admin|
+          | admin     | Admin      |
+          | publisher | Publisher  |
+          | pending   | Pending    |
+          | user      | User       |
+        enum:
+          - super
+          - admin
+          - pending_publisher
+          - publisher
+          - user
+      status:
+        type: string
+        description: |
+          |           |           |
+          |-----------|-----------|
+          | new       | New       |
+          | enabled   | Enabled   |
+          | disabled  | Disabled  |
+        enum:
+          - new
+          - enabled
+          - disabled
+      gender:
+        type: string
+        enum:
+          - male
+          - female
+      pictureName:
+        type: string
+      appealId:
+        default: [1,2]
+        type: array
+      categoryId:
+        default: [1,2]
+        type: array
+      interestId:
+        default: [1,2]
+        type: array
+      asset:
+        type: object
+        properties:
+          link:
+            type: string
+            default: "https://beam-asset-dev.s3.amazonaws.com/beams/1/image"
+          signature:
+            type: string
+            default: "X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAJ3WYSXJZLCSWYX7Q%2F20170317%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20170317T141733Z&X-Amz-Expires=600&X-Amz-Signature=e8582d998abc2679dcdcc22836c6b319ca76a200f696bf7f6d984cc65f75f808&X-Amz-SignedHeaders=host"
+      emailVerified:
+        type: boolean
+      enableNotification:
+        type: boolean
+      lastBeamId:
+        default: 1
+        type: integer
+      lastEventId:
+        default: 1
+        type: integer
+      followersCount:
+        type: integer
+        default: 1
+        description: Count of followers
+      followingsCount:
+        type: integer
+        default: 4
+        description: Count of followings
+      createdBeamsCount:
+        type: integer
+        default: 1
+        description: Count of beams related to this profile
+      savedBeamsCount:
+        type: integer
+        default: 1
+        description: Count of beams saved to this profile
+      allBeamsCount:
+        type: integer
+        default: 1
+        description: Count of all beams related to this profile
+      isFollowed:
+        type: boolean
+        default: 1
+        description: Count of beams saved to this profile,
+      blockedUserCount:
+        type: integer
+        default: 1
+        description: Count of users blocked by specific user
+      blockedBeamCount:
+        type: integer
+        default: 1
+        description: Count of beams blocked by user
+
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  AuthToken:
+    type: object
+    properties:
+      authToken:
+        type: string
+        default: "eyJhbGciOiJIU ... TaHm1fP7dr3b7AIYvNP0"
+        description: JWT access token
+      refreshToken:
+        type: string
+        default: "eyJhbGc-sdfdsf-TaHm1fP7dr-3b7AIYvNP0"
+        description: Refresh token
+  ProfileConter:
+    type: object
+    properties:
+      followersCount:
+        type: integer
+        default: 1
+        description: Count of followers
+      followingsCount:
+        type: integer
+        default: 4
+        description: Count of followings
+      createdBeamsCount:
+        type: integer
+        default: 1
+        description: Count of beams related to this profile
+      savedBeamsCount:
+        type: integer
+        default: 1
+        description: Count of beams saved to this profile
+      allBeamsCount:
+        type: integer
+        default: 1
+        description: Count of all beams related to this profile
+  AuthAccount:
+    allOf:
+      - $ref: "#/definitions/User"
+      - $ref: "#/definitions/AuthToken"
+  Stream:
+    type: object
+    required:
+      - userId
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      planId:
+        type: integer
+      title:
+        type: string
+      description:
+        type: string
+      status:
+        type: string
+        enum:
+          - pending
+          - accepted
+          - rejected
+      type:
+        type: string
+        enum:
+          - primary
+          - secondary
+      visibilities:
+        type: string
+        enum:
+          - private
+          - public
+      deletedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  Plan:
+    type: object
+    required:
+      - userId
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      planKeyId:
+        type: string
+        description: key of stripe account plan.
+      name:
+        type: string
+      interval:
+        type: string
+      currency:
+        type: string
+      amount:
+        type: number
+      deletedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  Subscription:
+    type: object
+    required:
+      - userId
+      - streamId
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      planId:
+        type: integer
+      streamId:
+        type: integer
+      deletedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+  Tag:
+    type: object
+    required:
+    properties:
+      id:
+        type: integer
+      value:
+        type: integer
+      count:
+        type: integer
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  Post:
+    type: object
+    required:
+    properties:
+      id:
+        type: integer
+      streamId:
+        type: integer
+      userId:
+        type: integer
+      beamId:
+        type: array
+        items:
+          type: integer
+      deletedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  Comment:
+    type: object
+    required:
+    properties:
+      id:
+        type: integer
+      beamId:
+        type: integer
+      userId:
+        type: integer
+      text:
+        type: string
+      deletedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  Interest:
+    type: object
+    required:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      description:
+        type: string
+      imageURL:
+        type: string
+      rectangleImageURL:
+        type: string
+      tags:
+        type: array
+        items:
+          type: string
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  Category:
+    type: object
+    required:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+      description:
+        type: string
+      imageURL:
+        type: string
+      rectangleImageURL:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  Like:
+    type: object
+    required:
+    properties:
+      id:
+        type: integer
+      beamId:
+        type: string
+      userId:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  Event:
+    type: object
+    required:
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      targetId:
+        type: integer
+      type:
+        type: string
+        enum:
+          - user_follow
+          - beam_like
+          - post_create
+          - donate
+      title:
+        type: string
+      deletedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  Feed:
+    allOf:
+      - $ref: "#/definitions/Event"
+
+  Appeal:
+    type: object
+    required:
+    properties:
+      id:
+        type: integer
+      title:
+        type: string
+      url:
+        type: string
+      tags:
+        type: array
+        items:
+          type: string
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  AppealPair:
+    type: object
+    required:
+    properties:
+      id:
+        type: integer
+      appealId1:
+        type: integer
+      appealId2:
+        type: integer
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  Library:
+    type: object
+    required:
+    properties:
+      id:
+        type: integer
+      categoryId:
+        type: integer
+      title:
+        type: string
+      description:
+        type: string
+      type:
+        type: string
+        description: "`gallery` or `popular`"
+      bigPictureUrl:
+        type: string
+      smallPictureUrl:
+        type: string
+      createdAt:
+        type: string
+        format: date-time
+      updatedAt:
+        type: string
+        format: date-time
+
+  Count:
+    type: object
+    required:
+    properties:
+      count:
+        type: integer
+
+  BeamSaved:
+    type: object
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      beamId:
+        type: integer
+      updatedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+      deletedAt:
+        type: string
+        format: date-time
+
+  UserAuth:
+    type: object
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      authId:
+        type: string
+      token:
+        type: string
+      provider:
+        type: string
+        enum:
+          - facebook
+          - twitter
+          - instagram
+      updatedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+
+  BeamBlackList:
+    type: object
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      beamId:
+        type: integer
+      description:
+        type: string
+      updatedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+
+  UserBlackList:
+    type: object
+    properties:
+      id:
+        type: integer
+      userId:
+        type: integer
+      accusedUserId:
+        type: integer
+      description:
+        type: string
+      updatedAt:
+        type: string
+        format: date-time
+      createdAt:
+        type: string
+        format: date-time
+

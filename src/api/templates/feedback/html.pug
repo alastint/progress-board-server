@@ -1,0 +1,18 @@
+extends ../layout
+
+block content
+    h2.title Feedback from #{sender}:
+    br
+    ul
+        if userId
+            li
+                b User ID : #{userId}
+        if beamId
+            li
+                b Beam ID : #{beamId}
+        if type
+            li
+                b Feedback type : #{type}
+    br
+    h3 Message :
+    p #{message}

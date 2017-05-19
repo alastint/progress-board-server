@@ -1,0 +1,16 @@
+const path = require('path');
+
+module.exports = {
+  //'config': path.resolve('./', './build/config/config.json'),
+  'migrations-path': path.resolve('./', './build/migrations'),
+  'seeders-path': path.resolve('./', './build/seeders'),
+  'models-path': path.resolve('./', './build/models'),
+  'url': process.env.DATABASE_URL,
+  'dialect':'postgres',
+  'ssl': true,
+  'native': true,
+  'dialectOptions':{
+    'native': true,
+    'ssl': true
+  }
+};

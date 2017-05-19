@@ -1,0 +1,32 @@
+{
+  "development": {
+    "dialect":"postgres",
+    "ssl": true,
+    "dialectOptions":{
+      "native": true,
+      "ssl": {
+        "require": true
+      }
+    }
+  },
+  "master": {
+    "dialect":"postgres",
+    "ssl": true,
+    "dialectOptions":{
+      "native": true,
+      "ssl": {
+        "require": true
+      }
+    }
+  },
+  "production": {
+    "dialect":"postgres",
+    "ssl": true,
+    "dialectOptions":{
+      "native": true,
+      "ssl": {
+        "require": true
+      }
+    }
+  }
+}
